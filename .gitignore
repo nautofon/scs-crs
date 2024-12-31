@@ -1,0 +1,10 @@
+# NE source data
+ne_*.zip
+ne_*.gpkg
+
+# QGIS temp files
+*.gpkg-shm
+*.gpkg-wal
+
+# local lib
+/cpan
