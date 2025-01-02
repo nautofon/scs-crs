@@ -85,7 +85,8 @@ The transformation script creates the following output files:
 
 [Perl](https://www.perl.org/) v5.20 or later (see also [Perlbrew](https://perlbrew.pl/)).
 
-Installing the required CPAN modules can for example be done like this:
+Installing the required CPAN modules can for example be done with
+[cpanm](https://metacpan.org/pod/App::cpanminus) like this:
 
 ```sh
 cpanm --local-lib cpan --prompt --skip-satisfied --installdeps .
