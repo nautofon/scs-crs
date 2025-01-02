@@ -114,8 +114,10 @@ if ($ENV{DEBUG}) {
 
 $_ = sprintf $format, $_ for values %viewbox;
 
+my $svg_height = 960; # pixels
+my $svg_width  = int $svg_height / $map_factor_ratio;
 my $svg = <<"";
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:x="http://www.w3.org/1999/xlink" width="960px" height="960px" viewBox="$viewbox{min_x} $viewbox{min_y} $viewbox{width} $viewbox{height}">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:x="http://www.w3.org/1999/xlink" width="${svg_width}px" height="${svg_height}px" viewBox="$viewbox{min_x} $viewbox{min_y} $viewbox{width} $viewbox{height}">
   <style>
     polyline { fill: none; stroke: red; stroke-width: 128; stroke-linejoin: round; stroke-linecap: round; }
   </style>
