@@ -84,19 +84,28 @@ my ($ui_map_center_e, $ui_map_center_s) = $map_data_sii =~ m/ui_map_center: $pai
 my ($ui_map_width,    $ui_map_height  ) = $map_data_sii =~ m/ui_map_size:   $pair/x;
 
 # Calculate map texture extent (= SVG viewBox dimensions).
+my $map_factor_ratio = abs $map_factor_e / $map_factor_n;
 my %map_scale = ( # nominal scale denominator
   ATS  => 20,
 );
 # ui_map_width / ui_map_height are given in km.
 my %viewbox;
 $viewbox{width}  = $ui_map_width  * 1000 / $map_scale{$game};
-$viewbox{height} = $ui_map_height * 1000 / $map_scale{$game};
+$viewbox{height} = $ui_map_height * 1000 / $map_scale{$game} * $map_factor_ratio;
 $viewbox{min_x}  = $ui_map_center_e - $viewbox{width}  / 2;
 $viewbox{min_y}  = $ui_map_center_s - $viewbox{height} / 2;
+
+# The UI map needs to be shifted south by 2 pixels (don't know why).
+my %ui_map_px_size = ( # m/pixel
+  width  => $viewbox{width}  / 2048,
+  height => $viewbox{height} / 2048,
+);
+my $ui_map_transform = sprintf "translate(0 $format)", $ui_map_px_size{height} * 2;
 
 if ($ENV{DEBUG}) {
   say "ui_map_center: $ui_map_center_e m E, $ui_map_center_s m S";
   say "ui_map_width: $ui_map_width km, ui_map_height: $ui_map_height km";
+  say "map_factor_ratio: $map_factor_ratio, ui_map_transform: $ui_map_transform";
   say "SVG viewBox: ", join " ", map { $viewbox{$_} } qw( min_x min_y width height );
 }
 
@@ -110,7 +119,7 @@ my $svg = <<"";
   <style>
     polyline { fill: none; stroke: red; stroke-width: 128; stroke-linejoin: round; stroke-linecap: round; }
   </style>
-  <image x:href="map.png" x="$viewbox{min_x}" y="$viewbox{min_y}" width="$viewbox{width}" height="$viewbox{height}" preserveAspectRatio="none"/>
+  <image x:href="map.png" x="$viewbox{min_x}" y="$viewbox{min_y}" width="$viewbox{width}" height="$viewbox{height}" preserveAspectRatio="none" transform="$ui_map_transform"/>
 
 for (@lines) {
   my $points = join " ", map { sprintf "$format,$format", @$_ } @$_;
