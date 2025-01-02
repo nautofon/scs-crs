@@ -110,6 +110,44 @@ if ($ENV{DEBUG}) {
 }
 
 
+# Create world and aux files, to enable using map.png in QGIS.
+
+my @world_file = (
+  $ui_map_px_size{width},
+  0,
+  0,
+  -( $ui_map_px_size{height} ), # north-oriented, see remark in WKT
+     $viewbox{min_x} + $ui_map_px_size{width}  * 0.5,
+  -( $viewbox{min_y} + $ui_map_px_size{height} * 2.5 ),
+);
+path("map.pgw")->spew_raw( map { "$_\n" } @world_file );
+
+sub wkt ($crs_name, $axis2_factor, $axis2, $scope, $remark) {
+  state $wkt_tmpl = do { local $/; <DATA> };
+  $wkt_tmpl =~ s/\{ (.*?) \}/ eval $1 /egrx;
+}
+
+path("map.png.aux.xml")->spew_raw(
+  "<PAMDataset><SRS>",
+  wkt(
+    q["ATS coordinate system (2D inverted)"],
+    -1,
+    q["northing (N)",north],
+    q["American Truck Simulator 2D game coordinates (GIS)"],
+    q["The second axis of ATS coordinates is normally south-oriented. However, QGIS (as of 3.40) does not seem to support north-up visualization of a south-oriented CRS. This WKT is north-oriented to work around that."],
+  ),
+  "</SRS></PAMDataset>\n",
+);
+
+path("wkt-ats.txt")->spew_raw( wkt(
+  q["ATS coordinate system (2D)"],
+  1,
+  q["southing (S)",south],
+  q["American Truck Simulator 2D game coordinates"],
+  q["The second axis of ATS coordinates is south-oriented (values increase towards the south). This WKT is suitable for raw coordinate transformations."],
+));
+
+
 # Create SVG output file.
 
 $_ = sprintf $format, $_ for values %viewbox;
@@ -134,3 +172,79 @@ $svg .= <<"";
 path(lc "ne_$game.svg")->spew_raw($svg);
 
 exit;
+
+
+__DATA__
+
+DERIVEDPROJCRS[{ $crs_name },
+  BASEPROJCRS["{ $game } map projection, Lambert Conformal Conic (spherical)",
+    BASEGEOGCRS["Unspecified datum based upon the GRS 1980 Authalic Sphere",
+      DATUM["Not specified (based on GRS 1980 Authalic Sphere)",
+        ELLIPSOID["GRS 1980 Authalic Sphere",{ $earth_radius },0,
+          LENGTHUNIT["metre",1,
+            ID["EPSG",9001]],
+          ID["EPSG",7048]]],
+      PRIMEM["Greenwich",0,
+        ID["EPSG",8901]],
+      CS[Ellipsoidal,2],
+        AXIS["geodetic latitude (Lat)",north,
+          ORDER[1]],
+        AXIS["geodetic longitude (Lon)",east,
+          ORDER[2]],
+      ANGLEUNIT["degree",0.0174532925199433,
+        ID["EPSG",9102]],
+      ID["EPSG",4047]],
+    CONVERSION["Lambert Conformal Conic projection",
+      METHOD["Lambert Conic Conformal (2SP)",
+        ID["EPSG",9802]],
+      PARAMETER["Latitude of false origin",{ $lat_0 },
+        ANGLEUNIT["degree",0.0174532925199433],
+        ID["EPSG",8821]],
+      PARAMETER["Longitude of false origin",{ $lon_0 },
+        ANGLEUNIT["degree",0.0174532925199433],
+        ID["EPSG",8822]],
+      PARAMETER["Latitude of 1st standard parallel",{ $lat_1 },
+        ANGLEUNIT["degree",0.0174532925199433],
+        ID["EPSG",8823]],
+      PARAMETER["Latitude of 2nd standard parallel",{ $lat_2 },
+        ANGLEUNIT["degree",0.0174532925199433],
+        ID["EPSG",8824]],
+      PARAMETER["Easting at false origin",{ $map_offset_e * $degree_length * $map_factor_e },
+        LENGTHUNIT["metre",1],
+        ID["EPSG",8826]],
+      PARAMETER["Northing at false origin",{ $map_offset_s * $degree_length * $map_factor_n },
+        LENGTHUNIT["metre",1],
+        ID["EPSG",8827]]]],
+  DERIVINGCONVERSION["{ $game } map scale, approx. 1:{ sprintf '%.2f', ($map_factor_e + abs $map_factor_n) * $degree_length / 2 }",
+    METHOD["Affine parametric transformation",
+      ID["EPSG",9624]],
+    PARAMETER["A0",0,
+      LENGTHUNIT["metre",1],
+      ID["EPSG",8623]],
+    PARAMETER["A1",{ 1 / $map_factor_e / $degree_length },
+      SCALEUNIT["coefficient",1],
+      ID["EPSG",8624]],
+    PARAMETER["A2",0,
+      SCALEUNIT["coefficient",1],
+      ID["EPSG",8625]],
+    PARAMETER["B0",0,
+      LENGTHUNIT["metre",1],
+      ID["EPSG",8639]],
+    PARAMETER["B1",0,
+      SCALEUNIT["coefficient",1],
+      ID["EPSG",8640]],
+    PARAMETER["B2",{ $axis2_factor / $map_factor_n / $degree_length },
+      SCALEUNIT["coefficient",1],
+      ID["EPSG",8641]],
+    REMARK["The { $game } scale differs slightly between axes."]],
+  CS[Cartesian,2],
+    AXIS["easting (E)",east,
+      ORDER[1]],
+    AXIS[{ $axis2 },
+      ORDER[2]],
+    LENGTHUNIT["metre",1,
+      ID["EPSG",9001]],
+  USAGE[SCOPE[{ $scope }],
+    AREA["North America"],
+    BBOX[10,-140,65,-50]],
+  REMARK[{ $remark }]]

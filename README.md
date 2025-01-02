@@ -68,6 +68,19 @@ qgis_process run native:extractbyextent --ellipsoid=EPSG:7030 \
 ogr2ogr -xyRes 1e-4 ne_ats.geojson ne_ats.gpkg
 ```
 
+## Output Files
+
+The transformation script creates the following output files:
+
+* [map.pgw](https://nautofon.github.io/scs-crs/map.pgw) —
+    World file, for using `map.png` as a QGIS layer
+* [map.png.aux.xml](https://nautofon.github.io/scs-crs/map.png.aux.xml) —
+    GDAL auxiliary metadata, for using `map.png` as a QGIS layer
+* [ne_ats.svg](https://nautofon.github.io/scs-crs/ne_ats.svg) —
+    Natural Earth data drawn on top of `map.png`
+* [wkt-ats.txt](https://nautofon.github.io/scs-crs/wkt-ats.txt) —
+    ATS coordinate reference system definition in WKT2 format
+
 ## Prerequisites
 
 [Perl](https://www.perl.org/) v5.20 or later (see also [Perlbrew](https://perlbrew.pl/)).
