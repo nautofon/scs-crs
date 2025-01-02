@@ -15,6 +15,9 @@ satisfactory:
 <!-- GH uses CORS headers to prevent the loading of map.png from within
 the SVG, hence we can't use the SVG to preview itself -->
 
+red = real-life data, transformed by this script  
+grey = ATS map texture
+
 ## Input Data
 
 The UI map texture `map.png` used in ATS was originally made using
