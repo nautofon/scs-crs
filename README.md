@@ -97,5 +97,5 @@ cpanm --local-lib cpan --prompt --skip-satisfied --installdeps .
 Created 2024-2025 by nautofon. I release my own work on this into the
 Public Domain under the terms of [CC0](https://creativecommons.org/public-domain/cc0/).
 
-`map.png` was extracted from [ATS](https://americantrucksimulator.com/),
-© 2020 SCS Software s.r.o.
+`map.png` was extracted from `material/ui/map/map.tobj` in
+[ATS](https://americantrucksimulator.com/), © 2020 SCS Software s.r.o.
