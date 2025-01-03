@@ -102,6 +102,8 @@ my %ui_map_px_size = ( # m/pixel
 );
 my $ui_map_transform = sprintf "translate(0 $format)", $ui_map_px_size{height} * 2;
 
+my $map_filename = 'map';
+
 if ($ENV{DEBUG}) {
   say "ui_map_center: $ui_map_center_e m E, $ui_map_center_s m S";
   say "ui_map_width: $ui_map_width km, ui_map_height: $ui_map_height km";
@@ -120,31 +122,33 @@ my @world_file = (
      $viewbox{min_x} + $ui_map_px_size{width}  * 0.5,
   -( $viewbox{min_y} + $ui_map_px_size{height} * 2.5 ),
 );
-path("map.pgw")->spew_raw( map { "$_\n" } @world_file );
+path("$map_filename.pgw")->spew_raw( map { "$_\n" } @world_file );
 
 sub wkt ($crs_name, $axis2_factor, $axis2, $scope, $remark) {
   state $wkt_tmpl = do { local $/; <DATA> };
   $wkt_tmpl =~ s/\{ (.*?) \}/ eval $1 /egrx;
 }
 
-path("map.png.aux.xml")->spew_raw(
+my $game_fullname = 'American Truck Simulator';
+
+path("$map_filename.png.aux.xml")->spew_raw(
   "<PAMDataset><SRS>",
   wkt(
-    q["ATS coordinate system (2D inverted)"],
+    qq["$game coordinate system (2D inverted)"],
     -1,
-    q["northing (N)",north],
-    q["American Truck Simulator 2D game coordinates (GIS)"],
-    q["The second axis of ATS coordinates is normally south-oriented. However, QGIS (as of 3.40) does not seem to support north-up visualization of a south-oriented CRS. This WKT is north-oriented to work around that."],
+    qq["northing (N)",north],
+    qq["$game_fullname 2D game coordinates (GIS)"],
+    qq["The second axis of $game coordinates is normally south-oriented. However, QGIS (as of 3.40) does not seem to support north-up visualization of a south-oriented CRS. This WKT is north-oriented to work around that."],
   ),
   "</SRS></PAMDataset>\n",
 );
 
-path("wkt-ats.txt")->spew_raw( wkt(
-  q["ATS coordinate system (2D)"],
+path(lc "wkt-$game.txt")->spew_raw( wkt(
+  qq["$game coordinate system (2D)"],
   1,
-  q["southing (S)",south],
-  q["American Truck Simulator 2D game coordinates"],
-  q["The second axis of ATS coordinates is south-oriented (values increase towards the south). This WKT is suitable for raw coordinate transformations."],
+  qq["southing (S)",south],
+  qq["$game_fullname 2D game coordinates"],
+  qq["The second axis of $game coordinates is south-oriented (values increase towards the south). This WKT is suitable for raw coordinate transformations."],
 ));
 
 
@@ -159,7 +163,7 @@ my $svg = <<"";
   <style>
     polyline { fill: none; stroke: red; stroke-width: 128; stroke-linejoin: round; stroke-linecap: round; }
   </style>
-  <image x:href="map.png" x="$viewbox{min_x}" y="$viewbox{min_y}" width="$viewbox{width}" height="$viewbox{height}" preserveAspectRatio="none" transform="$ui_map_transform"/>
+  <image x:href="$map_filename.png" x="$viewbox{min_x}" y="$viewbox{min_y}" width="$viewbox{width}" height="$viewbox{height}" preserveAspectRatio="none" transform="$ui_map_transform"/>
 
 for (@lines) {
   my $points = join " ", map { sprintf "$format,$format", @$_ } @$_;
