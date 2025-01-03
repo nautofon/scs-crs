@@ -1,3 +1,40 @@
+# ETS2 Coordinate Reference System
+
+I tried to run the exact same code on the ETS2 demo version
+(1.48, which is most recent at this time). Unfortunately,
+[the result for ETS2](https://nautofon.github.io/scs-crs/ne_ets2.svg)
+doesn't look so good. So far, I haven't been able to determine whether
+this is a problem with the projection math or with SCS's map texture.
+
+## ETS2 Input Data
+
+The UI map texture `map-ets2.png` used in ETS2 was apparently made using a
+different spatial dataset instead of Natural Earth. Still, the 1:50 million NE
+dataset is similar enough for a rough check.
+
+```sh
+curl -LSs \
+  -O https://naciscdn.org/naturalearth/50m/cultural/ne_50m_admin_0_boundary_lines_land.zip \
+  -O https://naciscdn.org/naturalearth/50m/physical/ne_50m_coastline.zip \
+
+qgis_process run native:mergevectorlayers \
+  --LAYERS=ne_50m_admin_0_boundary_lines_land.zip \
+  --LAYERS=ne_50m_coastline.gpkg \
+  --OUTPUT=ne_ets2_merged.gpkg
+
+qgis_process run native:retainfields \
+  --INPUT=ne_ets2_merged.gpkg \
+  --FIELDS=featurecla \
+  --OUTPUT=ne_ets2_noattrs.gpkg
+
+qgis_process run native:extractbyextent --ellipsoid=EPSG:7030 \
+  --INPUT=ne_ets2_noattrs.gpkg \
+  --EXTENT='-16,50,22,75 [EPSG:4326]' --CLIP=true \
+  --OUTPUT=ne_ets2.gpkg
+
+ogr2ogr -xyRes 1e-4 ne_ets2.geojson ne_ets2.gpkg
+```
+
 # ATS Coordinate Reference System
 
 In late 2024, **[@truckermudgeon](https://github.com/truckermudgeon)**

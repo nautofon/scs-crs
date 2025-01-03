@@ -14,7 +14,7 @@ use Math::Trig qw( pi );
 use Path::Tiny 0.011 qw( path );
 
 
-my $game = 'ATS';
+my $game = 'ETS2';
 my $scs = Archive::SCS::GameDir->new( game => $game )->mounted('def.scs');
 
 my $format = '%.0f';
@@ -87,6 +87,7 @@ my ($ui_map_width,    $ui_map_height  ) = $map_data_sii =~ m/ui_map_size:   $pai
 my $map_factor_ratio = abs $map_factor_e / $map_factor_n;
 my %map_scale = ( # nominal scale denominator
   ATS  => 20,
+  ETS2 => 19,
 );
 # ui_map_width / ui_map_height are given in km.
 my %viewbox;
@@ -102,7 +103,7 @@ my %ui_map_px_size = ( # m/pixel
 );
 my $ui_map_transform = sprintf "translate(0 $format)", $ui_map_px_size{height} * 2;
 
-my $map_filename = 'map';
+my $map_filename = 'map-ets2';
 
 if ($ENV{DEBUG}) {
   say "ui_map_center: $ui_map_center_e m E, $ui_map_center_s m S";
@@ -129,7 +130,7 @@ sub wkt ($crs_name, $axis2_factor, $axis2, $scope, $remark) {
   $wkt_tmpl =~ s/\{ (.*?) \}/ eval $1 /egrx;
 }
 
-my $game_fullname = 'American Truck Simulator';
+my $game_fullname = 'Euro Truck Simulator 2';
 
 path("$map_filename.png.aux.xml")->spew_raw(
   "<PAMDataset><SRS>",
@@ -159,7 +160,7 @@ $_ = sprintf $format, $_ for values %viewbox;
 my $svg_height = 960; # pixels
 my $svg_width  = int $svg_height / $map_factor_ratio;
 my $svg = <<"";
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:x="http://www.w3.org/1999/xlink" width="${svg_width}px" height="${svg_height}px" viewBox="$viewbox{min_x} $viewbox{min_y} $viewbox{width} $viewbox{height}">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:x="http://www.w3.org/1999/xlink" width="${svg_width}px" height="${svg_height}px" viewBox="$viewbox{min_x} $viewbox{min_y} $viewbox{width} $viewbox{height}" preserveAspectRatio="none">
   <style>
     polyline { fill: none; stroke: red; stroke-width: 128; stroke-linejoin: round; stroke-linecap: round; }
   </style>
